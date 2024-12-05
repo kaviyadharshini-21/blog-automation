@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlogGenius - AI Blog Generator</title>
+    <link rel="stylesheet" href="static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .progress-steps .step {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .progress-steps .step:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .progress-steps .step.active {
+            font-weight: bold;
+        }
+
+        .progress-steps .step.future {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .progress-steps .step.future:hover {
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>BlogGenius</h1>
+                <span class="tagline">AI-Powered Blog Creation</span>
+            </div>
+        </div>
+    </header>
+ 
+    <main class="main-content">
+        <div class="input-section">
+            <h2 class="page-title">Create Your Blog</h2>
+            
+            <div class="progress-steps">
+                <div class="step active">Topic</div>
+                <div class="step">Preferences</div>
+                <div class="step">Title</div>
+                <div class="step">Content</div>
+                <div class="step">Tags</div>
+                <div class="step">Publish</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-bar-fill"></div>
+            </div>
+
+            <div id="topic-section" class="step-content">
+                <h2 class="input-label">Enter blog topic or outline:</h2>
+                <textarea 
+                    id="topic-input"
+                    class="input-field" 
+                    placeholder="Enter your blog topic or outline here..."
+                    maxlength="1000"
+                ></textarea>
+                <div class="char-counter">0/1000 characters</div>
+                <div class="button-group">
+                    <button class="button next-step" disabled>
+                        Next: Set Preferences
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            
+            <div id="preferences-section" class="step-content" style="display: none;">
+                <h2 class="input-label">Content Preferences</h2>
+                <form id="preferences-form" class="preferences-form" style="display: grid;">
+                    <div class="preference-item">
+                        <label for="tone">Writing Tone</label>
+                        <select id="tone" name="tone">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="technical">Technical</option>
+                            <option value="conversational">Conversational</option>
+                        </select>
+                    </div>
+
+                    <div class="preference-item">
+                        <label for="target_audience">Target Audience</label>
+                        <select id="target_audience" name="target_audience">
+                            <option value="general">General</option>
+                            <option value="technical">Technical</option>
+                            <option value="business">Business</option>
+                            <option value="academic">Academic</option>
+                        </select>
+                    </div>
+
+                    <div class="preference-item">
+                        <label for="content_length">Content Length</label>
+                        <select id="content_length" name="content_length">
+                            <option value="short">Short (~500 words)</option>
+                            <option value="medium">Medium (~1000 words)</option>
+                            <option value="long">Long (~2000 words)</option>
+                        </select>
+                    </div>
+
+                    <div class="preference-item">
+                        <label for="special_focus">Special Focus</label>
+                        <select id="special_focus" name="special_focus">
+                            <option value="none">None</option>
+                            <option value="examples">Include Examples</option>
+                            <option value="code">Include Code Snippets</option>
+                            <option value="case-studies">Include Case Studies</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="button next-step" style="display: inline-flex;">
+                            Save & Generate Titles
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="title-section" class="step-content" style="display: none;">
+                <h2 class="section-title">Select a Title</h2>
+                <div id="generated-titles" class="titles-container"></div>
+                
+                <div class="custom-title-container">
+                    <h3>Create Your Own Title</h3>
+                    <div class="input-group">
+                        <input type="text" id="custom-title" class="input-field" placeholder="Enter your custom title here...">
+                        <button class="button secondary use-custom-title">Use Custom Title</button>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="button next-step" disabled>
+                        Generate Content
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="content-section" class="step-content" style="display: none;">
+                    <div class="content-preview"></div>
+                <div class="button-group">
+                    <button class="button" onclick="showTagsSection()">
+                        Generate Tags
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="tags-section" class="step-content" style="display: none;">
+                <div class="tags-container">
+                    <div class="tags-main">
+                        <div class="section-header">
+                        </div>
+                        <h2 class="section-title">Blog Tags</h2>
+                        <p class="section-description">Select relevant tags for your blog post</p>
+                        <div class="tags-preview"></div>
+                    </div>
+                    
+                    <div class="tags-sidebar">
+                        <div class="selected-tags-container">
+                            <h3>Selected Tags <span class="tag-count">(0)</span></h3>
+                            <div class="selected-tags"></div>
+                        </div>
+                        
+                        <div class="tags-actions">
+                            <button class="button secondary regenerate-tags" onclick="generateAndShowTags()">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                Regenerate
+                            </button>
+                            <button class="button publish-button" onclick="publishContent()">
+                                Publish to Medium
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="publish-section" class="step-content" style="display: none;">
+            </div>
+        </div>
+    </main>
+
+    <div id="loading" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-message">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentTopic = '';
+        let selectedTitle = '';
+        let generatedContent = '';
+        let currentStep = 1;
+        const totalSteps = 5;
+        let userPreferences = {
+            tone: 'professional',
+            target_audience: 'general',
+            content_length: 'medium',
+            special_focus: 'none'
+        };
+        let selectedTags = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, setting up navigation');
+            setupNavigationListeners();
+            setupTopicSection();
+            setupPreferencesSection();
+            setupTitleSection();
+            setupPublishEventListeners();
+        });
+
+        function setupTopicSection() {
+            const topicInput = document.getElementById('topic-input');
+            const nextButton = document.querySelector('#topic-section .next-step');
+            const charCounter = document.querySelector('.char-counter');
+            
+            if (!topicInput || !nextButton || !charCounter) return;
+
+            topicInput.addEventListener('input', function() {
+                const length = this.value.length;
+                charCounter.textContent = `${length}/1000 characters`;
+                nextButton.disabled = length < 10;
+                currentTopic = this.value; 
+            });
+
+            nextButton.onclick = () => {
+                if (topicInput.value.length >= 10) {
+                    currentTopic = topicInput.value; 
+                    showSection('preferences-section');
+                    updateStep(2);
+                }
+            };
+        }
+
+        function setupPreferencesSection() {
+            const form = document.getElementById('preferences-form');
+            const nextButton = document.querySelector('#preferences-section .next-step');
+
+            if (form) {
+                form.querySelectorAll('select').forEach(select => {
+                    select.addEventListener('change', () => {
+                        userPreferences[select.name] = select.value;
+                    });
+                });
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    const formData = new FormData(form);
+                    formData.forEach((value, key) => {
+                        userPreferences[key] = value;
+                    });
+
+                    const buttonText = nextButton.textContent;
+                    nextButton.innerHTML = `
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...`;
+                    nextButton.disabled = true;
+
+                    setTimeout(() => {
+                        nextButton.innerHTML = `
+                            Save & Generate Titles
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>`;
+                        nextButton.disabled = false;
+
+                        showSection('title-section');
+                        updateStep(3);
+                        generateTitles();
+                    }, 500);
+                });
+            }
+        }
+
+        function setupTitleSection() {
+            const titleSection = document.getElementById('title-section');
+            const customTitleInput = document.getElementById('custom-title');
+            const useCustomTitleBtn = titleSection.querySelector('.use-custom-title');
+            const nextButton = titleSection.querySelector('.next-step');
+
+            useCustomTitleBtn.addEventListener('click', () => {
+                const customTitle = customTitleInput.value.trim();
+                if (customTitle) {
+                    const selectedTitle = titleSection.querySelector('.title-option.selected');
+                    if (selectedTitle) {
+                        selectedTitle.classList.remove('selected');
+                    }
+                    
+                    selectedTitle = customTitle;
+                    nextButton.disabled = false;
+                }
+            });
+
+            customTitleInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    useCustomTitleBtn.click();
+                }
+            });
+
+            nextButton.addEventListener('click', () => {
+                if (!selectedTitle) {
+                    showError('Please select a title first');
+                    return;
+                }
+                generateContent();
+            });
+        }
+
+        function setupNavigationListeners() {
+            console.log('Setting up navigation listeners');
+            
+            const steps = document.querySelectorAll('.progress-steps .step');
+            console.log('Found steps:', steps.length);
+            
+            steps.forEach((step, index) => {
+                console.log('Adding click listener to step:', step.textContent.trim());
+                step.style.cursor = 'pointer'; 
+                
+                step.addEventListener('click', (e) => {
+                    console.log('Step clicked:', step.textContent.trim());
+                    const currentStep = document.querySelector('.step.active');
+                    const currentIndex = Array.from(steps).indexOf(currentStep);
+                    const targetIndex = index;
+                    
+                    console.log('Current index:', currentIndex, 'Target index:', targetIndex);
+                    if (targetIndex < currentIndex) {
+                        console.log('Moving to previous step');
+                        let targetSection;
+                        switch(targetIndex) {
+                            case 0:
+                                targetSection = 'topic-section';
+                                break;
+                            case 1:
+                                targetSection = 'preferences-section';
+                                break;
+                            case 2:
+                                targetSection = 'title-section';
+                                break;
+                            case 3:
+                                targetSection = 'content-section';
+                                break;
+                            case 4:
+                                targetSection = 'tags-section';
+                                break;
+                            case 5:
+                                targetSection = 'publish-section';
+                                break;
+                        }
+                        console.log('Showing section:', targetSection);
+                        showSection(targetSection);
+                        updateStep(targetIndex + 1);
+                    } else {
+                        console.log('Cannot move forward through steps');
+                    }
+                });
+            });
+
+            document.querySelector('.regenerate-titles')?.addEventListener('click', () => {
+                generateTitles();
+            });
+
+            document.querySelector('.regenerate-content')?.addEventListener('click', () => {
+                generateContent();
+            });
+
+            document.querySelector('.regenerate-tags')?.addEventListener('click', () => {
+                generateAndShowTags();
+            });
+        }
+
+        function setupPublishEventListeners() {
+            const publishButton = document.querySelector('.publish-button');
+            const nextButton = document.querySelector('#content-section .next-step');
+
+            if (publishButton) {
+                publishButton.addEventListener('click', () => {
+                    publishContent();
+                });
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener('click', () => {
+                    showTagsSection();
+                    updateStep(5);
+                });
+            }
+        }
+
+        function showSection(sectionId) {
+            console.log('Showing section:', sectionId);
+            
+            const allSections = document.querySelectorAll('.step-content');
+            allSections.forEach(section => {
+                section.style.display = 'none';
+                console.log('Hiding section:', section.id);
+            });
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                console.log('Found target section:', sectionId);
+                targetSection.style.display = 'block';
+                if (sectionId === 'preferences-section') {
+                    console.log('Setting up preferences section');
+                    const form = document.getElementById('preferences-form');
+                    const buttons = targetSection.querySelectorAll('.button');
+                    
+                    if (form) {
+                        form.style.display = 'grid';
+                        console.log('Preferences form displayed');
+                    }
+                    
+                    buttons.forEach(button => {
+                        button.style.display = 'inline-flex';
+                        console.log('Button displayed:', button.textContent.trim());
+                    });
+                }
+            } else {
+                console.error('Section not found:', sectionId);
+            }
+        }
+
+        function updateStep(step) {
+            console.log('Updating to step:', step);
+            currentStep = step;
+            const steps = document.querySelectorAll('.progress-steps .step');
+            steps.forEach((s, index) => {
+                s.classList.remove('active', 'future');
+                
+                if (index + 1 === currentStep) {
+                    s.classList.add('active');
+                    console.log('Activated step:', index + 1);
+                } else if (index + 1 > currentStep) {
+                    s.classList.add('future');
+                    console.log('Future step:', index + 1);
+                }
+            });
+            const progressFill = document.querySelector('.progress-bar-fill');
+            if (progressFill) {
+                const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+                progressFill.style.width = `${progress}%`;
+                console.log('Progress updated to:', progress + '%');
+            }
+        }
+
+        async function generateTitles() {
+            showLoading('Generating titles...');
+            try {
+                const response = await fetch('/api/generate-titles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        topic: currentTopic,
+                        preferences: userPreferences
+                    })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to generate titles');
+                
+                hideLoading();
+                if (!data.titles || data.titles.length === 0) {
+                    throw new Error('No titles were generated');
+                }
+                const validTitles = data.titles.filter(title => 
+                    title && 
+                    title.trim() && 
+                    !title.toLowerCase().includes('<!doctype') &&
+                    !title.toLowerCase().includes('<html')
+                );
+                
+                if (validTitles.length === 0) {
+                    throw new Error('No valid titles were generated');
+                }
+                
+                displayTitles(validTitles);
+                showSection('title-section');
+                updateStep(3);
+            } catch (error) {
+                hideLoading();
+                showError('Failed to generate titles: ' + error.message);
+            }
+        }
+
+        async function generateContent() {
+            showLoading('Generating your blog content...');
+            try {
+                const response = await fetch('/api/generate-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        topic: currentTopic,
+                        title: selectedTitle,
+                        preferences: userPreferences
+                    })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to generate content');
+                
+                hideLoading();
+                if (!data.content) {
+                    throw new Error('No content was generated');
+                }
+                
+                displayContent(data.content);
+                showSection('content-section');
+                updateStep(4);
+            } catch (error) {
+                hideLoading();
+                showError('Failed to generate content: ' + error.message);
+            }
+        }
+
+        function showLoading(message) {
+            const loading = document.getElementById('loading');
+            const loadingMessage = document.querySelector('.loading-message');
+            loadingMessage.textContent = message;
+            loading.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            alert(message);
+        }
+
+        function displayTitles(titles) {
+            const titleSection = document.getElementById('title-section');
+            if (!titleSection) return;
+
+            const titlesList = document.createElement('div');
+            titlesList.className = 'titles-list';
+            
+            titles.forEach((title, index) => {
+                let cleanTitle = title.trim();
+                cleanTitle = cleanTitle.replace(/^\d+\.\s*/, ''); 
+                cleanTitle = cleanTitle.replace(/^["']|["']$/g, ''); 
+                cleanTitle = cleanTitle.replace(/^i\.\s*/i, ''); 
+                
+                const titleOption = document.createElement('div');
+                titleOption.className = 'title-option';
+                titleOption.textContent = cleanTitle;
+                titleOption.onclick = () => {
+                    document.querySelectorAll('.title-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    titleOption.classList.add('selected');
+                    selectedTitle = cleanTitle;
+                    const nextButton = document.querySelector('#title-section .next-step');
+                    if (nextButton) {
+                        nextButton.disabled = false;
+                    }
+                };
+
+                titlesList.appendChild(titleOption);
+            });
+            const existingTitlesList = titleSection.querySelector('.titles-list');
+            if (existingTitlesList) {
+                existingTitlesList.remove();
+            }
+            const buttonGroup = titleSection.querySelector('.button-group');
+            titleSection.insertBefore(titlesList, buttonGroup);
+
+            const nextButton = titleSection.querySelector('.next-step');
+            if (nextButton) {
+                nextButton.disabled = true;
+            }
+        }
+
+        function displayContent(content) {
+            const contentPreview = document.querySelector('.content-preview');
+            if (!contentPreview) return;
+            generatedContent = content;
+            const editorSection = document.createElement('div');
+            editorSection.className = 'editor-section';
+            editorSection.innerHTML = `
+                <div class="content-edit">
+                    <textarea id="content-textarea">${unformatContent(content)}</textarea>
+                    <div class="editor-preferences">
+                        <textarea 
+                            id="edit-preferences" 
+                            placeholder="Enter your editing preferences (e.g., Add more examples, Make it more technical, etc.)"
+                            rows="2"
+                        ></textarea>
+                        <button class="enhance">Enhance</button>
+                        <button class="save">Update Content</button>
+                    </div>
+                </div>
+            `;
+            const downloadButton = document.createElement('button');
+            downloadButton.className = 'download-pdf';
+            downloadButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Download PDF
+            `;
+            editorSection.querySelector('.enhance').onclick = async () => {
+                const preferences = editorSection.querySelector('#edit-preferences').value.trim();
+                const currentContent = editorSection.querySelector('#content-textarea').value;
+                
+                if (!preferences) {
+                    showError('Please enter your editing preferences');
+                    return;
+                }
+                
+                showLoading('Enhancing content...');
+                
+                try {
+                    const response = await fetch('/api/edit-content', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content: currentContent,
+                            instruction: preferences
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        editorSection.querySelector('#content-textarea').value = data.content;
+                    }
+                } catch (error) {
+                    showError('Failed to enhance content: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            };
+
+            editorSection.querySelector('.save').onclick = () => {
+                const newContent = editorSection.querySelector('#content-textarea').value;
+                contentPreview.innerHTML = formatContent(newContent);
+                generatedContent = newContent; 
+            };
+            
+            editorSection.querySelector('#content-textarea').addEventListener('input', function() {
+                generatedContent = this.value; 
+            });
+
+            downloadButton.onclick = async () => {
+                await generatePDF(contentPreview.innerHTML);
+            };
+            contentPreview.innerHTML = formatContent(content);
+            const existingEditor = contentPreview.parentElement.querySelector('.editor-section');
+            if (existingEditor) {
+                existingEditor.remove();
+            }
+            const existingDownload = contentPreview.parentElement.querySelector('.download-pdf');
+            if (existingDownload) {
+                existingDownload.remove();
+            }
+            contentPreview.parentElement.appendChild(editorSection);
+            contentPreview.parentElement.appendChild(downloadButton);
+
+            showSection('content-section');
+            updateStep(4);
+        }
+
+        async function generatePDF(content) {
+            showLoading('Generating PDF...');
+            
+            try {
+                const cleanContent = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                                         .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+                
+                const response = await fetch('/api/download-pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: cleanContent })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate PDF');
+                }
+                const blob = await response.blob();
+            
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'blog-post.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                showError('Failed to generate PDF: ' + error.message);
+            }
+        }
+
+        function publishContent() {
+            const loadingOverlay = document.getElementById('loading');
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('.loading-message').textContent = 'Publishing your blog...';
+            if (!currentTopic || !selectedTitle || !generatedContent) {
+                showError('Missing required content for publishing');
+                loadingOverlay.style.display = 'none';
+                return;
+            }
+            const publishData = {
+                topic: currentTopic,
+                title: selectedTitle,
+                content: generatedContent,
+                preferences: userPreferences,
+                tags: selectedTags
+            };
+
+            console.log('Publishing content:', publishData);
+
+            fetch('/api/publish', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(publishData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                if (data.success) {
+                    showPublishSuccess(data.blogUrl);
+                } else {
+                    showError(data.message || 'Failed to publish content');
+                }
+            })
+            .catch(error => {
+                loadingOverlay.style.display = 'none';
+                showError('Error publishing content: ' + error.message);
+            });
+        }
+
+        function showPublishSuccess(blogUrl) {
+            const existingMessages = document.querySelectorAll('.success-message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const message = document.createElement('div');
+            message.className = 'success-message';
+            message.innerHTML = `
+                <div class="success-header">
+                    <h2>🎉 Blog Published Successfully!</h2>
+                    <div class="success-actions">
+                        <button onclick="window.open('${blogUrl || '/blog/latest'}')" class="button secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View Blog
+                        </button>
+                        <button onclick="window.location.reload()" class="button primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Create New Blog
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.querySelector('.main-content').appendChild(message);
+        }
+
+        function showTagsSection() {
+            const contentSection = document.getElementById('content-section');
+            const tagsSection = document.getElementById('tags-section');
+            
+            if (!contentSection || !tagsSection) return;
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((step, index) => {
+                if (index <= 4) { 
+                    step.classList.add('active');
+                }
+            });
+
+            contentSection.style.display = 'none';
+            tagsSection.style.display = 'block';
+            generateAndShowTags();
+        }
+
+        function generateAndShowTags() {
+            const loadingOverlay = document.getElementById('loading');
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('.loading-message').textContent = 'Generating tags...';
+
+            console.log('Generating tags with:', {
+                topic: currentTopic,
+                title: selectedTitle
+            });
+
+            if (!currentTopic || !selectedTitle) {
+                showError('Please generate content first to create tags');
+                loadingOverlay.style.display = 'none';
+                return;
+            }
+
+            fetch('/api/generate-tags', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    topic: currentTopic, 
+                    title: selectedTitle 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingOverlay.style.display = 'none';
+                if (data.success) {
+                    displayTags(data.tags);
+                } else {
+                    showError(data.message || 'Failed to generate tags');
+                }
+            })
+            .catch(error => {
+                loadingOverlay.style.display = 'none';
+                showError('Error generating tags: ' + error.message);
+            });
+        }
+
+        function displayTags(tags) {
+            const tagsPreview = document.querySelector('.tags-preview');
+            const selectedTagsContainer = document.querySelector('.selected-tags');
+            
+            tagsPreview.innerHTML = '';
+            selectedTagsContainer.innerHTML = '';
+            selectedTags = [];
+            tags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag';
+                tagElement.textContent = tag;
+                tagElement.onclick = () => toggleTag(tag, tagElement);
+                tagsPreview.appendChild(tagElement);
+            });
+        }
+
+        function toggleTag(tag, element) {
+            const index = selectedTags.indexOf(tag);
+            if (index === -1) {
+                if (selectedTags.length < 5) {
+                    selectedTags.push(tag);
+                    element.classList.add('selected');
+                    updateSelectedTagsDisplay();
+                } else {
+                    showError('Maximum 5 tags allowed');
+                }
+            } else {
+                selectedTags.splice(index, 1);
+                element.classList.remove('selected');
+                updateSelectedTagsDisplay();
+            }
+        }
+
+        function updateSelectedTagsDisplay() {
+            const selectedTagsContainer = document.querySelector('.selected-tags');
+            selectedTagsContainer.innerHTML = '';
+            
+            selectedTags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag selected';
+                tagElement.innerHTML = `${tag}<span class="remove-tag" onclick="removeTag('${tag}')">&times;</span>`;
+                selectedTagsContainer.appendChild(tagElement);
+            });
+        }
+
+        function removeTag(tag) {
+            const index = selectedTags.indexOf(tag);
+            if (index !== -1) {
+                selectedTags.splice(index, 1);
+                const tagElement = document.querySelector(`.tags-preview .tag:contains('${tag}')`);
+                if (tagElement) {
+                    tagElement.classList.remove('selected');
+                }
+                updateSelectedTagsDisplay();
+            }
+        }
+
+        function previousSection(prevSectionId) {
+            const currentSection = document.querySelector('.section.active');
+            const prevSection = document.getElementById(prevSectionId);
+            
+            if (!currentSection || !prevSection) return;
+            const steps = document.querySelectorAll('.step');
+            const currentIndex = Array.from(steps).findIndex(step => 
+                step.textContent.toLowerCase() === currentSection.id.replace('-section', ''));
+            
+            steps.forEach((step, index) => {
+                if (index > currentIndex - 1) {
+                    step.classList.remove('active');
+                }
+            });
+            currentSection.classList.remove('active');
+            prevSection.classList.add('active');
+        }
+
+        function unformatContent(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            let content = '';
+            const processNode = (node) => {
+                switch (node.nodeName) {
+                    case 'H1':
+                        return '# ' + node.textContent + '\n\n';
+                    case 'H2':
+                        return '## ' + node.textContent + '\n\n';
+                    case 'H3':
+                        return '### ' + node.textContent + '\n\n';
+                    case 'P':
+                        return node.textContent + '\n\n';
+                    case 'UL':
+                        return Array.from(node.children)
+                            .map(li => '- ' + li.textContent)
+                            .join('\n') + '\n\n';
+                    case 'ARTICLE':
+                    case 'DIV':
+                        return Array.from(node.childNodes)
+                            .map(child => processNode(child))
+                            .join('');
+                    default:
+                        return node.textContent ? node.textContent + '\n\n' : '';
+                }
+            };
+            
+            content = processNode(temp);
+            return content.trim();
+        }
+
+        function formatContent(content) {
+            content = content.replace(/\n{3,}/g, '\n\n').trim();
+            const sections = content.split(/(?=^#+ )/m);
+            
+            let formattedContent = '';
+            let currentTags = [];
+            
+            sections.forEach((section, index) => {
+                if (!section.trim()) return;
+                if (index === 0 && section.includes('Tags:')) {
+                    const [contentPart, tagsPart] = section.split('Tags:');
+                    if (tagsPart) {
+                        currentTags = tagsPart.split(',').map(tag => tag.trim());
+                        section = contentPart;
+                    }
+                }
+                section = section
+                    .replace(/^# ([^\n]+)/gm, '<h1 class="blog-title">$1</h1>')
+                    .replace(/^## ([^\n]+)/gm, '<h2 class="section-title">$1</h2>')
+                    .replace(/^### ([^\n]+)/gm, '<h3 class="subsection-title">$1</h3>');
+
+                const blocks = section.split('\n\n');
+                const processedBlocks = blocks.map(block => {
+                    block = block.trim();
+                    if (!block) return '';
+                    if (block.startsWith('<h')) return block;
+                    if (block.startsWith('```')) {
+                        const [, language, ...codeLines] = block.split('\n');
+                        const code = codeLines.join('\n').replace(/```$/, '');
+                        return `<pre class="code-block ${language}"><code>${code}</code></pre>`;
+                    }
+                    if (block.match(/^[-*] /m)) {
+                        const items = block.split('\n').map(item => {
+                            item = item.replace(/^[-*] /, '').trim();
+                            return item ? `<li>${item}</li>` : '';
+                        }).join('');
+                        return `<ul class="blog-list">${items}</ul>`;
+                    }
+                    block = block.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+
+                    return `<p class="blog-paragraph">${block}</p>`;
+                });
+                
+                formattedContent += processedBlocks.join('\n');
+            });
+            const tagsHtml = currentTags.length ? `
+                <div class="tags-container">
+                    ${currentTags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+            ` : '';
+            return `
+                <article class="blog-content">
+                    ${tagsHtml}
+                    ${formattedContent}
+                </article>
+            `;
+        }
+        async function applySuggestion(type) {
+            const textarea = document.querySelector('#content-textarea');
+            const currentContent = textarea.value;
+            
+            let instruction = '';
+            switch(type) {
+                case 'examples':
+                    instruction = 'Add code examples and real-world scenarios to demonstrate the concepts';
+                    break;
+                case 'technical':
+                    instruction = 'Add more technical details, implementation specifics, and performance considerations';
+                    break;
+                case 'engaging':
+                    instruction = 'Make the content more engaging by adding statistics, expert quotes, and recent developments';
+                    break;
+                case 'tips':
+                    instruction = 'Include practical tips, best practices, and common pitfalls';
+                    break;
+            }
+            
+            showLoading('Enhancing content...');
+            
+            try {
+                const response = await fetch('/api/edit-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: currentContent,
+                        instruction: instruction
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    textarea.value = data.content;
+                }
+            } catch (error) {
+                showError('Failed to enhance content: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+    </script>
+</body>
+</html>
